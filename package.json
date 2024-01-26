@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "start": "wds"
+  },
+  "devDependencies": {
+    "@web/dev-server": "^0.1.36"
+  },
+  "version": "1.0.0",
+  "license": "ISC"
+}

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Page</title>
+</head>
+<body>
+
+<button id="loginButton">Login</button>
+<button id="logoutButton">Logout</button>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const loginButton = document.getElementById('loginButton');
+  const logoutButton = document.getElementById('logoutButton');
+
+  let urlRefer = window.location.href.replace("#", "?");
+  let url = new URL(urlRefer);
+
+  if (url.searchParams.get("error_description")) {
+    alert(url.searchParams.get("error_description"))
+    window.close();
+  } else if (url.searchParams.get("code")) {
+    console.log(url.searchParams.get("code"))
+    let data = "grant_type=authorization_code&scope=" + encodeURIComponent('aws.cognito.signin.user.admin email openid phone profile') + "&redirect_uri=<callback_uri>&client_id=<pool_client_id>&code=" + url.searchParams.get("code");
+
+    fetch('https://<user_pool_name>.auth.us-east-1.amazoncognito.com/oauth2/token', {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: data
+    }).then(res => {
+      console.log(res, "RES")
+      return res.json();
+    }).then(result => {
+      console.log(result);
+      let b64decode = atob(result.id_token.split('.')[1]);
+      let idToken = JSON.parse(b64decode)
+
+      sessionStorage.setItem("auth", JSON.stringify(result))
+
+      console.log(idToken)
+    })
+  }
+
+  logoutButton.addEventListener('click', function () {
+    sessionStorage.clear();
+    window.location.href = "/";
+  })
+
+  loginButton.addEventListener('click', function () {
+    window.location = 'https://<user_pool_name>.auth.<region>.amazoncognito.com/oauth2/authorize?client_id=<client_id>&response_type=code&scope=aws.cognito.signin.user.admin+email+openid+phone+profile&redirect_uri=<callback_uri>';
+
+    // Add event listener to the popup window for the "message" event
+    window.addEventListener('message', function (event) {
+      // Handle the received message from the popup window
+      console.log('Received message:', event.data);
+      
+      // You can add your own logic to handle the received message here
+    });
+  });
+});
+</script>
+
+</body>
+</html>
